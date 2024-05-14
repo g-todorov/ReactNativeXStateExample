@@ -1,6 +1,5 @@
 import { useEffect, useRef } from "react";
 import {
-  getCurrentRouteBreadcrumb,
   getCurrentRouteName,
   navigationRef,
 } from "../navigation/NavigationRef";
