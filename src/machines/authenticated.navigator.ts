@@ -1,7 +1,8 @@
-import { ActorRefFrom, setup, assign } from "xstate";
+import { ActorRefFrom, setup, assign, fromCallback } from "xstate";
 import { AuthenticatedParamList } from "../types/navigation";
 import { HomeMachineActor, homeMachine } from "./home";
 import { ListMachineActor, listMachine } from "./list";
+import { navigationSubscriber } from "./shared/actors";
 
 export type AuthenticatedMachineActor = ActorRefFrom<
   typeof authenticatedMachine
@@ -27,7 +28,11 @@ export const authenticatedMachine = setup({
       },
     }),
   },
-  actors: { homeMachine, listMachine },
+  actors: {
+    homeMachine,
+    listMachine,
+    navigationSubscriber,
+  },
   guards: {
     isHomeScreen(_, params: { screen: keyof AuthenticatedParamList }) {
       return params.screen === "Home";
@@ -40,6 +45,7 @@ export const authenticatedMachine = setup({
   context: { refHome: undefined, refList: undefined },
   id: "application",
   initial: "homeScreen",
+  invoke: { src: "navigationSubscriber" },
   on: {
     NAVIGATE: [
       {

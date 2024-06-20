@@ -4,11 +4,11 @@ import { createActorContext, useSelector } from "@xstate/react";
 import {
   AuthenticatingMachineActor,
   authenticatingMachine,
-} from "../machines/authenticating";
+} from "../machines/authenticating.navigator";
 import {
   AuthenticatedMachineActor,
   authenticatedMachine,
-} from "../machines/authenticated";
+} from "../machines/authenticated.navigator";
 
 export const appMachine = setup({
   types: {
