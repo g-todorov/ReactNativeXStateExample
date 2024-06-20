@@ -6,10 +6,9 @@ import {
   AuthenticatedParamList,
   RootStackScreenProps,
 } from "../types/navigation";
-import { AuthenticatedMachineActor } from "../machines/authenticated";
+import { AuthenticatedMachineActor } from "../machines/authenticated.navigator";
 import HomeScreen from "../screens/Home";
 import ListScreen from "../screens/List";
-import { useNavigator } from "../hooks/useNavigator";
 
 const Stack = createNativeStackNavigator<AuthenticatedParamList>();
 
@@ -20,10 +19,6 @@ interface Props extends RootStackScreenProps<"Authenticated"> {
 export function AuthenticatedNavigator({ actorRef }: Props) {
   const state = useSelector(actorRef, (snapshot) => {
     return snapshot;
-  });
-
-  useNavigator<AuthenticatedParamList>((route) => {
-    actorRef.send({ type: "NAVIGATE", screen: route });
   });
 
   return (
