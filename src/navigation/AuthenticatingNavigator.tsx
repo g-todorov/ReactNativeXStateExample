@@ -22,7 +22,7 @@ export function AuthenticatingNavigator({ navigation, actorRef }: Props) {
 
   return (
     <Stack.Navigator initialRouteName="SignIn">
-      <Stack.Screen name="SignIn">
+      <Stack.Screen name="SignIn" options={{ title: "Sing In" }}>
         {(props) => {
           return (
             <SignInScreen
