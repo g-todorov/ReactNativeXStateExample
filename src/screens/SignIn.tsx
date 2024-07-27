@@ -1,5 +1,7 @@
 import React from "react";
-import { Button, View } from "react-native";
+import { View } from "react-native";
+import { Button } from "react-native-paper";
+
 import { AuthenticatingScreenProps } from "../types/navigation";
 
 interface Props extends AuthenticatingScreenProps<"SignIn"> {
@@ -11,11 +13,14 @@ export default React.memo(function SignIn({ onSignInPress, isLoading }: Props) {
   return (
     <View style={{ flex: 1, alignItems: "center", justifyContent: "center" }}>
       <Button
-        title={isLoading ? "Loading" : "Sign In"}
+        mode="contained"
+        loading={isLoading}
         onPress={() => {
           onSignInPress();
         }}
-      />
+      >
+        Sign In
+      </Button>
     </View>
   );
 });

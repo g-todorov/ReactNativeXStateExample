@@ -1,5 +1,6 @@
 import React from "react";
-import { Button, Text, View } from "react-native";
+import { View } from "react-native";
+import { Button, Card, Icon, Text } from "react-native-paper";
 import { useSelector } from "@xstate/react";
 
 import { AuthenticatedScreenProps } from "../types/navigation";
@@ -15,14 +16,26 @@ export default React.memo(function Home({ navigation, actorRef }: Props) {
   const state = useSelector(actorRef, (snapshot) => snapshot);
 
   return (
-    <View style={{ flex: 1, alignItems: "center", justifyContent: "center" }}>
-      <Text>Welcome, {appState.context.username}</Text>
-      <Button
-        title="List"
-        onPress={() => {
-          navigation.navigate("List");
-        }}
-      />
+    <View style={{ padding: 16 }}>
+      <Text variant="headlineSmall" style={{ marginBottom: 8 }}>
+        Welcome, {appState.context.username}
+      </Text>
+      <Card>
+        <Card.Title title="You can store your items here."></Card.Title>
+        <Card.Actions>
+          <Button
+            contentStyle={{ flexDirection: "row-reverse" }}
+            onPress={() => {
+              navigation.navigate("List");
+            }}
+            icon={({ ...props }) => {
+              return <Icon source="arrow-right" {...props} />;
+            }}
+          >
+            Explore
+          </Button>
+        </Card.Actions>
+      </Card>
     </View>
   );
 });

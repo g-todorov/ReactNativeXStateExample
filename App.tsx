@@ -1,13 +1,16 @@
 import React from "react";
-import { AppProvider } from "./src/contexts/useApp";
+import { PaperProvider } from "react-native-paper";
 
+import { AppProvider } from "./src/contexts/useApp";
 import { Navigation } from "./src/navigation/Navigation";
 
 function App(): JSX.Element {
   return (
-    <AppProvider>
-      <Navigation />
-    </AppProvider>
+    <PaperProvider>
+      <AppProvider>
+        <Navigation />
+      </AppProvider>
+    </PaperProvider>
   );
 }
 
