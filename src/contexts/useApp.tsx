@@ -9,6 +9,10 @@ import {
   AuthenticatedMachineActor,
   authenticatedMachine,
 } from "../machines/authenticated.navigator";
+import {
+  NotificationCenterMachineActor,
+  notificationCenterMachine,
+} from "../machines/notificationCenter";
 
 export const appMachine = setup({
   types: {
@@ -17,6 +21,7 @@ export const appMachine = setup({
       username: string;
       refAuthenticating: AuthenticatingMachineActor | null;
       refAuthenticated: AuthenticatedMachineActor | null;
+      refNotificationCenter: NotificationCenterMachineActor | undefined;
     },
   },
   actions: {
@@ -36,13 +41,24 @@ export const appMachine = setup({
     stopRefAuthenticated() {
       stopChild("refAuthenticated");
     },
+    setRefNotificationCenter: assign({
+      refNotificationCenter: ({ spawn }) => {
+        return spawn("notificationCenterMachine", {
+          systemId: "notificationCenter",
+        });
+      },
+    }),
     setUsername: assign({
       username: (_, { username }: { username: string }) => {
         return username;
       },
     }),
   },
-  actors: { authenticatingMachine, authenticatedMachine },
+  actors: {
+    authenticatingMachine,
+    authenticatedMachine,
+    notificationCenterMachine,
+  },
 }).createMachine({
   id: "application",
   initial: "initializing",
@@ -50,9 +66,13 @@ export const appMachine = setup({
     username: "",
     refAuthenticating: null,
     refAuthenticated: null,
+    refNotificationCenter: undefined,
   },
   states: {
-    initializing: { on: { START_APP: { target: "authenticating" } } },
+    initializing: {
+      entry: "setRefNotificationCenter",
+      on: { START_APP: { target: "authenticating" } },
+    },
     authenticating: {
       entry: ["setRefAuthenticating"],
       on: {
