@@ -29,6 +29,10 @@ export function AuthenticatingNavigator({ navigation, actorRef }: Props) {
               onSignInPress={() => {
                 actorRef.send({ type: "SIGN_IN" });
               }}
+              setPhoneNumber={(phoneNumber) => {
+                actorRef.send({ type: "SET_PHONE_NUMBER", phoneNumber });
+              }}
+              phoneNumber={state.context.phoneNumber}
               isLoading={state.matches("signingIn")}
               {...props}
             />

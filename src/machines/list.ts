@@ -6,8 +6,9 @@ import {
   sendTo,
   setup,
 } from "xstate";
-import { addItem, deleteItem, getItems, Item } from "../api";
+import { addItem, deleteItem, getItems } from "../api";
 import { getNotificationCenterEvent } from "./shared/utils";
+import { Item } from "../types";
 
 export type ListMachineActor = ActorRefFrom<typeof listMachine>;
 

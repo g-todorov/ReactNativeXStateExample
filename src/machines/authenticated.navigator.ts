@@ -1,4 +1,5 @@
-import { ActorRefFrom, setup, assign, fromCallback } from "xstate";
+import { ActorRefFrom, setup, assign, sendParent } from "xstate";
+
 import { AuthenticatedParamList } from "../types/navigation";
 import { HomeMachineActor, homeMachine } from "./home";
 import { ListMachineActor, listMachine } from "./list";
@@ -14,7 +15,17 @@ export const authenticatedMachine = setup({
       refHome: HomeMachineActor | undefined;
       refList: ListMachineActor | undefined;
     },
-    events: {} as { type: "NAVIGATE"; screen: keyof AuthenticatedParamList },
+    events: {} as
+      | {
+          type: "NAVIGATE";
+          screen: keyof AuthenticatedParamList;
+        }
+      | { type: "SIGN_OUT" },
+  },
+  actors: {
+    homeMachine,
+    listMachine,
+    navigationSubscriber,
   },
   actions: {
     setRefHome: assign({
@@ -27,11 +38,7 @@ export const authenticatedMachine = setup({
         return spawn("listMachine");
       },
     }),
-  },
-  actors: {
-    homeMachine,
-    listMachine,
-    navigationSubscriber,
+    sendParentSignOut: sendParent({ type: "SIGN_OUT" }),
   },
   guards: {
     isHomeScreen(_, params: { screen: keyof AuthenticatedParamList }) {
@@ -71,6 +78,7 @@ export const authenticatedMachine = setup({
         target: ".listScreen",
       },
     ],
+    SIGN_OUT: { actions: ["sendParentSignOut"] },
   },
   states: {
     homeScreen: { entry: ["setRefHome"] },

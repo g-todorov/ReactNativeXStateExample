@@ -4,7 +4,8 @@ import { RootStackParamList } from "../types/navigation";
 import { useApp } from "../contexts/useApp";
 import { AuthenticatingNavigator } from "./AuthenticatingNavigator";
 import { AuthenticatedNavigator } from "./AuthenticatedNavigator";
-import { Text, View } from "react-native";
+import { View } from "react-native";
+import { ActivityIndicator } from "react-native-paper";
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
 
@@ -14,10 +15,10 @@ export function RootNavigator() {
   const isAuthenticating = state.matches("authenticating");
   const isAuthenticated = state.matches("authenticated");
 
-  if (state.matches("initializing")) {
+  if (state.matches("initializing") || state.matches("signingOut")) {
     return (
-      <View>
-        <Text>Loading...</Text>
+      <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
+        <ActivityIndicator size={"large"} />
       </View>
     );
   }
