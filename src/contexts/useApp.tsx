@@ -1,6 +1,7 @@
 import React from "react";
-import { setup, assign, stopChild } from "xstate";
+import { setup, assign, stopChild, fromPromise } from "xstate";
 import { createActorContext, useSelector } from "@xstate/react";
+
 import {
   AuthenticatingMachineActor,
   authenticatingMachine,
@@ -13,16 +14,29 @@ import {
   NotificationCenterMachineActor,
   notificationCenterMachine,
 } from "../machines/notificationCenter";
+import { getCurrentUser, signOut } from "../api";
 
 export const appMachine = setup({
   types: {
-    events: {} as { type: "START_APP" } | { type: "SIGN_IN"; username: string },
+    events: {} as
+      | { type: "START_APP" }
+      | { type: "SIGN_IN"; username: string }
+      | { type: "SIGN_OUT" },
     context: {} as {
       username: string;
       refAuthenticating: AuthenticatingMachineActor | null;
       refAuthenticated: AuthenticatedMachineActor | null;
       refNotificationCenter: NotificationCenterMachineActor | undefined;
     },
+  },
+  actors: {
+    authenticatingMachine,
+    authenticatedMachine,
+    notificationCenterMachine,
+    signOut: fromPromise(async () => {
+      const result = await signOut();
+      return result as { status: string };
+    }),
   },
   actions: {
     setRefAuthenticating: assign({
@@ -54,10 +68,10 @@ export const appMachine = setup({
       },
     }),
   },
-  actors: {
-    authenticatingMachine,
-    authenticatedMachine,
-    notificationCenterMachine,
+  guards: {
+    isUserAuthenticated() {
+      return getCurrentUser() !== null;
+    },
   },
 }).createMachine({
   id: "application",
@@ -72,6 +86,21 @@ export const appMachine = setup({
     initializing: {
       entry: "setRefNotificationCenter",
       on: { START_APP: { target: "authenticating" } },
+      always: [
+        {
+          guard: "isUserAuthenticated",
+          target: "authenticated",
+          actions: [
+            {
+              type: "setUsername",
+              params: () => {
+                return { username: getCurrentUser()?.phoneNumber ?? "" };
+              },
+            },
+          ],
+        },
+        { target: "authenticating" },
+      ],
     },
     authenticating: {
       entry: ["setRefAuthenticating"],
@@ -92,7 +121,11 @@ export const appMachine = setup({
     },
     authenticated: {
       entry: ["setRefAuthenticated"],
+      on: { SIGN_OUT: { target: "signingOut" } },
       exit: ["stopRefAuthenticated"],
+    },
+    signingOut: {
+      invoke: { src: "signOut", onDone: { target: "authenticating" } },
     },
   },
 });

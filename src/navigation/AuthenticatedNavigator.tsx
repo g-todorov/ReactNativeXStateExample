@@ -1,4 +1,5 @@
 import * as React from "react";
+import { Appbar } from "react-native-paper";
 import { useSelector } from "@xstate/react";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
 
@@ -22,7 +23,27 @@ export function AuthenticatedNavigator({ actorRef }: Props) {
   });
 
   return (
-    <Stack.Navigator initialRouteName="Home">
+    <Stack.Navigator
+      initialRouteName="Home"
+      screenOptions={{
+        header: (props) => {
+          return (
+            <Appbar.Header>
+              {props.back ? (
+                <Appbar.BackAction onPress={props.navigation.goBack} />
+              ) : null}
+              <Appbar.Content title={props.route.name} />
+              <Appbar.Action
+                icon="logout"
+                onPress={() => {
+                  actorRef.send({ type: "SIGN_OUT" });
+                }}
+              />
+            </Appbar.Header>
+          );
+        },
+      }}
+    >
       <Stack.Screen name="Home">
         {(props) => {
           return <HomeScreen actorRef={state.context.refHome} {...props} />;
