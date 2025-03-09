@@ -1,5 +1,4 @@
 import * as React from "react";
-import { Appbar } from "react-native-paper";
 import { useSelector } from "@xstate/react";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
 
@@ -10,6 +9,7 @@ import {
 import { AuthenticatedMachineActor } from "../machines/authenticated.navigator";
 import HomeScreen from "../screens/Home";
 import ListScreen from "../screens/List";
+import { AppBar } from "../components/TopBars";
 
 const Stack = createNativeStackNavigator<AuthenticatedParamList>();
 
@@ -28,18 +28,12 @@ export function AuthenticatedNavigator({ actorRef }: Props) {
       screenOptions={{
         header: (props) => {
           return (
-            <Appbar.Header>
-              {props.back ? (
-                <Appbar.BackAction onPress={props.navigation.goBack} />
-              ) : null}
-              <Appbar.Content title={props.route.name} />
-              <Appbar.Action
-                icon="logout"
-                onPress={() => {
-                  actorRef.send({ type: "SIGN_OUT" });
-                }}
-              />
-            </Appbar.Header>
+            <AppBar
+              {...props}
+              onLogoutPress={() => {
+                actorRef.send({ type: "SIGN_OUT" });
+              }}
+            />
           );
         },
       }}

@@ -18,7 +18,7 @@ export default React.memo(function Home({ navigation, actorRef }: Props) {
   return (
     <View style={{ padding: 16 }}>
       <Text variant="headlineSmall" style={{ marginBottom: 8 }}>
-        Welcome, {appState.context.username}
+        Welcome, {appState.context.user?.name}
       </Text>
       <Card>
         <Card.Title title="You can store your items here."></Card.Title>

@@ -50,7 +50,7 @@ export const authenticatedMachine = setup({
   },
 }).createMachine({
   context: { refHome: undefined, refList: undefined },
-  id: "application",
+  id: "authenticatedNavigator",
   initial: "homeScreen",
   invoke: { src: "navigationSubscriber" },
   on: {
