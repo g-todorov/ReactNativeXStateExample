@@ -13,6 +13,7 @@ declare global {
 export type RootStackParamList = {
   Authenticating: NavigatorScreenParams<AuthenticatingParamList> | undefined;
   Authenticated: NavigatorScreenParams<AuthenticatedParamList> | undefined;
+  Onboarding: NavigatorScreenParams<OnboardingParamList> | undefined;
 };
 
 export type RootStackScreenProps<Screen extends keyof RootStackParamList> =
@@ -40,3 +41,15 @@ export type AuthenticatedScreenProps<
   NativeStackScreenProps<AuthenticatedParamList, Screen>,
   NativeStackScreenProps<RootStackParamList>
 >;
+
+export type OnboardingParamList = {
+  StepOne: undefined;
+  StepTwo: undefined;
+  StepThree: undefined;
+};
+
+export type OnboardingScreenProps<Screen extends keyof OnboardingParamList> =
+  CompositeScreenProps<
+    NativeStackScreenProps<OnboardingParamList, Screen>,
+    NativeStackScreenProps<RootStackParamList>
+  >;

@@ -10,7 +10,7 @@ import {
 
 import { AuthenticatingParamList } from "../types/navigation";
 import { onAuthStateChanged, signInWithPhone } from "../api";
-import { User } from "../types";
+import { AuthUser } from "../types";
 import { getNotificationCenterEvent } from "./shared/utils";
 
 export type AuthenticatingMachineActor = ActorRefFrom<
@@ -22,15 +22,14 @@ export const authenticatingMachine = setup({
     context: {} as { phoneNumber: string },
     events: {} as
       | { type: "SIGN_IN" }
-      | { type: "SET_SIGNED_IN_USER"; user: User }
+      | { type: "SET_SIGNED_IN_USER"; user: AuthUser }
       | { type: "NAVIGATE"; screen: keyof AuthenticatingParamList }
       | { type: "SET_PHONE_NUMBER"; phoneNumber: string },
   },
   actors: {
     signIn: fromPromise(
       async ({ input }: { input: { phoneNumber: string } }) => {
-        const result = await signInWithPhone(input.phoneNumber);
-        return result as { status: string; user: User };
+        await signInWithPhone(input.phoneNumber);
       },
     ),
     userSubscriber: fromCallback(({ sendBack }) => {
@@ -45,7 +44,7 @@ export const authenticatingMachine = setup({
   },
   actions: {
     sendParentSignIn: sendParent(
-      (_, { user: { phoneNumber } }: { user: User }) => {
+      (_, { user: { phoneNumber } }: { user: AuthUser }) => {
         return {
           type: "SIGN_IN",
           username: phoneNumber,
@@ -62,7 +61,7 @@ export const authenticatingMachine = setup({
     }, getNotificationCenterEvent),
   },
 }).createMachine({
-  id: "authenticating",
+  id: "authenticatingNavigator",
   initial: "idle",
   context: { phoneNumber: "" },
   invoke: {
