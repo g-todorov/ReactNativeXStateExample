@@ -1,10 +1,68 @@
-This is a new [**React Native**](https://reactnative.dev) project, bootstrapped using [`@react-native-community/cli`](https://github.com/react-native-community/cli).
+# React Native with xState
 
-# Getting Started
+**This is an opinionated guide on how to orchestrate your React Native application with xState.**
 
->**Note**: Make sure you have completed the [React Native - Environment Setup](https://reactnative.dev/docs/environment-setup) instructions till "Creating a new application" step, before proceeding.
+It is described in the following series:
 
-## Step 1: Start the Metro Server
+:one: [Initial project setup](https://dev.to/gtodorov/react-native-with-xstate-v5-4ekn)  
+:two: [Navigation optimizations](https://dev.to/gtodorov/improve-react-navigation-with-xstate-v5-2l15)  
+:three: [Notification center](https://dev.to/gtodorov/react-native-notification-center-with-xstate-v5-41cf)  
+:four: [Authentication](https://dev.to/gtodorov/react-native-authentication-with-xstate-v5-39ah)  
+:five: [Onboarding](https://dev.to/gtodorov/react-native-onboarding-wizard-with-xstate-v5-1naf)
+
+## Basic architecture
+
+<head>
+  <link
+  href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"
+  rel="stylesheet"
+  />
+</head>
+
+```mermaid
+flowchart TB
+    subgraph wrapper[" "]
+        direction TB
+        subgraph Root
+            direction LR
+            NavRef("fa:fa-cogs Navigation Ref") ---> AppM("App Machine")
+            NavRef("fa:fa-cogs Navigation Ref") ---> RootNav("fa:fa-code Root Navigator")
+            AppM("fa:fa-cog App Machine") <--useApp--> RootNav("fa:fa-code Root Navigator")
+        end
+        subgraph authenticating
+            direction LR
+            MAuthenticating("fa:fa-cogs Machine") <--useNavigator--> NavAuthenticating("fa:fa-code Navigator")
+        end
+        subgraph authenticated
+            direction LR
+            MAuthenticated("fa:fa-cogs Machine") <--useNavigator--> NavAuthenticated("fa:fa-code Navigator")
+        end
+        subgraph List
+            direction LR
+            MList("fa:fa-cogs Machine") <--useSelector--> SList("fa:fa-code Screen")
+        end
+        subgraph Home
+            direction LR
+            MHome("fa:fa-cogs Machine") <--useSelector--> SHome("fa:fa-code Screen")
+        end
+        subgraph SignIn
+            direction LR
+            SScreen("fa:fa-code Screen")
+        end
+    end
+    Root --authenticatingNavigatorRef--> authenticating
+    Root --authenticatedNavigatorRef--> authenticated
+    authenticating -.sendParent.-> Root
+    authenticating --signInActorRef--> SignIn
+    authenticated --homeActorRef--> Home
+    authenticated --listActorRef--> List
+```
+
+## Working on the application
+
+> **Note**: Make sure you have completed the [React Native - Environment Setup](https://reactnative.dev/docs/environment-setup) instructions till "Creating a new application" step, before proceeding.
+
+### Step 1: Start the Metro Server
 
 First, you will need to start **Metro**, the JavaScript _bundler_ that ships _with_ React Native.
 
@@ -18,11 +76,11 @@ npm start
 yarn start
 ```
 
-## Step 2: Start your Application
+### Step 2: Start your Application
 
 Let Metro Bundler run in its _own_ terminal. Open a _new_ terminal from the _root_ of your React Native project. Run the following command to start your _Android_ or _iOS_ app:
 
-### For Android
+#### For Android
 
 ```bash
 # using npm
@@ -32,7 +90,7 @@ npm run android
 yarn android
 ```
 
-### For iOS
+#### For iOS
 
 ```bash
 # using npm
@@ -46,7 +104,7 @@ If everything is set up _correctly_, you should see your new app running in your
 
 This is one way to run your app — you can also run it directly from within Android Studio and Xcode respectively.
 
-## Step 3: Modifying your App
+### Step 3: Modifying your App
 
 Now that you have successfully run the app, let's modify it.
 
@@ -55,25 +113,6 @@ Now that you have successfully run the app, let's modify it.
 
    For **iOS**: Hit <kbd>Cmd ⌘</kbd> + <kbd>R</kbd> in your iOS Simulator to reload the app and see your changes!
 
-## Congratulations! :tada:
+### Congratulations
 
-You've successfully run and modified your React Native App. :partying_face:
-
-### Now what?
-
-- If you want to add this new React Native code to an existing application, check out the [Integration guide](https://reactnative.dev/docs/integration-with-existing-apps).
-- If you're curious to learn more about React Native, check out the [Introduction to React Native](https://reactnative.dev/docs/getting-started).
-
-# Troubleshooting
-
-If you can't get this to work, see the [Troubleshooting](https://reactnative.dev/docs/troubleshooting) page.
-
-# Learn More
-
-To learn more about React Native, take a look at the following resources:
-
-- [React Native Website](https://reactnative.dev) - learn more about React Native.
-- [Getting Started](https://reactnative.dev/docs/environment-setup) - an **overview** of React Native and how setup your environment.
-- [Learn the Basics](https://reactnative.dev/docs/getting-started) - a **guided tour** of the React Native **basics**.
-- [Blog](https://reactnative.dev/blog) - read the latest official React Native **Blog** posts.
-- [`@facebook/react-native`](https://github.com/facebook/react-native) - the Open Source; GitHub **repository** for React Native.
+You've successfully run and modified your React Native App!
