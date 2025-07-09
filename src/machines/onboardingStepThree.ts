@@ -1,25 +1,32 @@
-import { ActorRefFrom, assign, sendParent, setup } from "xstate";
+import { ActorRef, ActorRefFrom, Snapshot, assign, setup } from "xstate";
+
 import { persistOnboardingState } from "./shared/utils";
+import { Events as ParentEvents } from "./onboarding.navigator";
+
+type ParentActor = ActorRef<Snapshot<unknown>, ParentEvents>;
 
 export type OnboardingStepThreeActor = ActorRefFrom<
   typeof onboardingStepThreeMachine
 >;
 
 export interface Context {
+  refParent: ParentActor | undefined;
   choice: "first" | "second";
 }
 
 export const onboardingStepThreeMachine = setup({
   types: {
     context: {} as Context,
-    input: {} as { persistedContext?: Context },
+    input: {} as { parent?: ParentActor; persistedContext?: Context },
     events: {} as
       | { type: "FINISH" }
       | { type: "SET_CHOICE"; value: Context["choice"] },
   },
   actors: {},
   actions: {
-    sendParentFinish: sendParent({ type: "FINISH_ONBOARDING" }),
+    sendParentFinish({ context }) {
+      context.refParent?.send({ type: "FINISH_ONBOARDING" });
+    },
     persistContext({ context }) {
       persistOnboardingState({
         currentStep: "StepThree",
@@ -37,7 +44,10 @@ export const onboardingStepThreeMachine = setup({
   id: "onboardingStepThree",
   initial: "idle",
   context: ({ input }) => {
-    return { choice: input.persistedContext?.choice ?? "first" };
+    return {
+      refParent: input.parent,
+      choice: input.persistedContext?.choice ?? "first",
+    };
   },
   states: {
     idle: {
