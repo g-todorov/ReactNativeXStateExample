@@ -22,13 +22,15 @@ import { getCurrentUser, readFromDb, signOut } from "../api";
 import { User } from "../types";
 import { getNotificationCenterEvent } from "../machines/shared/utils";
 
+export type Events =
+  | { type: "START_APP" }
+  | { type: "SIGN_IN"; username: string }
+  | { type: "SIGN_OUT" }
+  | { type: "GET_USER" };
+
 export const appMachine = setup({
   types: {
-    events: {} as
-      | { type: "START_APP" }
-      | { type: "SIGN_IN"; username: string }
-      | { type: "SIGN_OUT" }
-      | { type: "GET_USER" },
+    events: {} as Events,
     context: {} as {
       user: User | undefined;
       refAuthenticating: AuthenticatingMachineActor | undefined;
@@ -70,7 +72,7 @@ export const appMachine = setup({
         });
       },
     }),
-    stopRefAuthenticated: assign({ refAuthenticating: undefined }),
+    stopRefAuthenticated: assign({ refAuthenticated: undefined }),
     setRefOnboarding: assign({
       refOnboarding: ({ spawn, self }) => {
         return spawn("onboardingMachine", {

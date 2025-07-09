@@ -1,9 +1,12 @@
-import { ActorRefFrom, setup, assign, sendParent } from "xstate";
+import { ActorRefFrom, setup, assign, ActorRef, Snapshot } from "xstate";
 
 import { AuthenticatedParamList } from "../types/navigation";
 import { HomeMachineActor, homeMachine } from "./home";
 import { ListMachineActor, listMachine } from "./list";
 import { navigationSubscriber } from "./shared/actors";
+import { Events as ParentEvents } from "../contexts/useApp";
+
+type ParentActor = ActorRef<Snapshot<unknown>, ParentEvents>;
 
 export type AuthenticatedMachineActor = ActorRefFrom<
   typeof authenticatedMachine
@@ -11,7 +14,9 @@ export type AuthenticatedMachineActor = ActorRefFrom<
 
 export const authenticatedMachine = setup({
   types: {
+    input: {} as { parent: ParentActor },
     context: {} as {
+      refParent: ParentActor;
       refHome: HomeMachineActor | undefined;
       refList: ListMachineActor | undefined;
     },
@@ -38,7 +43,9 @@ export const authenticatedMachine = setup({
         return spawn("listMachine");
       },
     }),
-    sendParentSignOut: sendParent({ type: "SIGN_OUT" }),
+    sendParentSignOut({ context }) {
+      context.refParent.send({ type: "SIGN_OUT" });
+    },
   },
   guards: {
     isHomeScreen(_, params: { screen: keyof AuthenticatedParamList }) {
@@ -49,7 +56,9 @@ export const authenticatedMachine = setup({
     },
   },
 }).createMachine({
-  context: { refHome: undefined, refList: undefined },
+  context: ({ input }) => {
+    return { refParent: input.parent, refHome: undefined, refList: undefined };
+  },
   id: "authenticatedNavigator",
   initial: "homeScreen",
   invoke: { src: "navigationSubscriber" },

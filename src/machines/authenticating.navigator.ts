@@ -1,17 +1,21 @@
 import {
   ActorRefFrom,
   setup,
-  sendParent,
   fromPromise,
   fromCallback,
   assign,
   sendTo,
+  ActorRef,
+  Snapshot,
 } from "xstate";
 
 import { AuthenticatingParamList } from "../types/navigation";
 import { onAuthStateChanged, signInWithPhone } from "../api";
 import { AuthUser } from "../types";
 import { getNotificationCenterEvent } from "./shared/utils";
+import { Events as ParentEvents } from "../contexts/useApp";
+
+type ParentActor = ActorRef<Snapshot<unknown>, ParentEvents>;
 
 export type AuthenticatingMachineActor = ActorRefFrom<
   typeof authenticatingMachine
@@ -19,7 +23,8 @@ export type AuthenticatingMachineActor = ActorRefFrom<
 
 export const authenticatingMachine = setup({
   types: {
-    context: {} as { phoneNumber: string },
+    input: {} as { parent: ParentActor },
+    context: {} as { refParent: ParentActor; phoneNumber: string },
     events: {} as
       | { type: "SIGN_IN" }
       | { type: "SET_SIGNED_IN_USER"; user: AuthUser }
@@ -43,14 +48,12 @@ export const authenticatingMachine = setup({
     }),
   },
   actions: {
-    sendParentSignIn: sendParent(
-      (_, { user: { phoneNumber } }: { user: AuthUser }) => {
-        return {
-          type: "SIGN_IN",
-          username: phoneNumber,
-        };
-      },
-    ),
+    sendParentSignIn({ context }, params: { user: AuthUser }) {
+      context.refParent.send({
+        type: "SIGN_IN",
+        username: params.user.phoneNumber,
+      });
+    },
     setPhoneNumber: assign({
       phoneNumber: (_, params: { phoneNumber: string }) => {
         return params.phoneNumber;
@@ -63,7 +66,12 @@ export const authenticatingMachine = setup({
 }).createMachine({
   id: "authenticatingNavigator",
   initial: "idle",
-  context: { phoneNumber: "" },
+  context: ({ input }) => {
+    return {
+      refParent: input.parent,
+      phoneNumber: "",
+    };
+  },
   invoke: {
     src: "userSubscriber",
   },

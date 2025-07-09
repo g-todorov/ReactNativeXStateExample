@@ -1,11 +1,12 @@
 import {
   ActorRefFrom,
   setup,
-  sendParent,
   assign,
   fromPromise,
   initialTransition,
   sendTo,
+  ActorRef,
+  Snapshot,
 } from "xstate";
 
 import { navigationSubscriber } from "./shared/actors";
@@ -36,27 +37,34 @@ import {
   getNotificationCenterEvent,
 } from "./shared/utils";
 import { onboard } from "../api";
+import { Events as ParentEvents } from "../contexts/useApp";
+
+type ParentActor = ActorRef<Snapshot<unknown>, ParentEvents>;
 
 export type OnboardingMachineActor = ActorRefFrom<typeof onboardingMachine>;
 
 interface Context {
+  refParent: ParentActor;
   refStepOne: OnboardingStepOneActor | undefined;
   refStepTwo: OnboardingStepTwoActor | undefined;
   refStepThree: OnboardingStepThreeActor | undefined;
   persistedOnboardingState: PersistedOnboardingState | undefined;
 }
 
+export type Events =
+  | {
+      type: "NAVIGATE";
+      screen: keyof OnboardingParamList;
+    }
+  | { type: "SIGN_OUT" }
+  | { type: "GO_BACK" }
+  | { type: "FINISH_ONBOARDING" };
+
 export const onboardingMachine = setup({
   types: {
+    input: {} as { parent: ParentActor },
     context: {} as Context,
-    events: {} as
-      | {
-          type: "NAVIGATE";
-          screen: keyof OnboardingParamList;
-        }
-      | { type: "SIGN_OUT" }
-      | { type: "GO_BACK" }
-      | { type: "FINISH_ONBOARDING" },
+    events: {} as Events,
   },
   actors: {
     navigationSubscriber,
@@ -114,12 +122,13 @@ export const onboardingMachine = setup({
     }),
     resetRefStepTwo: assign({ refStepTwo: undefined }),
     setRefStepThree: assign({
-      refStepThree: ({ spawn, context }) => {
+      refStepThree: ({ spawn, context, self }) => {
         return (
           context.refStepThree ??
           spawn("onboardingStepThreeMachine", {
             id: "onboardingStepThreeMachine",
             input: {
+              parent: self,
               persistedContext: context.persistedOnboardingState?.stepThree,
             },
           })
@@ -127,8 +136,12 @@ export const onboardingMachine = setup({
       },
     }),
     resetRefStepThree: assign({ refStepThree: undefined }),
-    sendParentSignOut: sendParent({ type: "SIGN_OUT" }),
-    sendParentGetUser: sendParent({ type: "GET_USER" }),
+    sendParentSignOut({ context }) {
+      context.refParent.send({ type: "SIGN_OUT" });
+    },
+    sendParentGetUser({ context }) {
+      context.refParent.send({ type: "GET_USER" });
+    },
     navigateToOnboardingStep(_, params: { screen: keyof OnboardingParamList }) {
       navigationRef.navigate("Onboarding", { screen: params.screen });
     },
@@ -142,10 +155,11 @@ export const onboardingMachine = setup({
   id: "onboardingNavigator",
   initial: "steps",
   type: "parallel",
-  context: () => {
+  context: ({ input }) => {
     const persistedOnboardingState = getOnboardingState();
 
     return {
+      refParent: input.parent,
       refStepOne: undefined,
       refStepTwo: undefined,
       refStepThree: undefined,
