@@ -11,7 +11,7 @@ export type OnboardingStepThreeActor = ActorRefFrom<
 
 export interface Context {
   refParent: ParentActor | undefined;
-  choice: "first" | "second";
+  choice: "first" | "second" | undefined;
 }
 
 export const onboardingStepThreeMachine = setup({
@@ -46,7 +46,7 @@ export const onboardingStepThreeMachine = setup({
   context: ({ input }) => {
     return {
       refParent: input.parent,
-      choice: input.persistedContext?.choice ?? "first",
+      choice: input.persistedContext?.choice,
     };
   },
   states: {

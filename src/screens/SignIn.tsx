@@ -1,6 +1,8 @@
 import React from "react";
 import { View } from "react-native";
-import { Button, TextInput } from "react-native-paper";
+import { Button, TextInput, HelperText } from "react-native-paper";
+import { useForm } from "@swan-io/use-form";
+import { isValidPhoneNumber } from "libphonenumber-js";
 
 import { AuthenticatingScreenProps } from "../types/navigation";
 
@@ -17,6 +19,30 @@ export default React.memo(function SignIn({
   phoneNumber,
   setPhoneNumber,
 }: Props) {
+  const { Field, submitForm } = useForm({
+    phoneNumber: {
+      initialValue: phoneNumber,
+      strategy: "onSubmit",
+      validate: (value) => {
+        if (!value) {
+          return "Phone number is required.";
+        }
+
+        return isValidPhoneNumber(value)
+          ? undefined
+          : "Phone number is not valid.";
+      },
+    },
+  });
+
+  const handleSubmit = () => {
+    submitForm({
+      onSuccess: () => {
+        onSignInPress();
+      },
+    });
+  };
+
   return (
     <View
       style={{
@@ -26,23 +52,35 @@ export default React.memo(function SignIn({
         padding: 16,
       }}
     >
-      <TextInput
-        mode="outlined"
-        label="Phone number"
-        value={phoneNumber}
-        keyboardType="phone-pad"
-        onChangeText={(value) => {
-          setPhoneNumber(value);
-        }}
-        style={{ marginBottom: 16, width: "100%" }}
-      />
-      <Button
-        mode="contained"
-        loading={isLoading}
-        onPress={() => {
-          onSignInPress();
-        }}
-      >
+      <Field name="phoneNumber">
+        {({ value, onChange, error }) => (
+          <View
+            style={{
+              marginBottom: 16,
+              width: "100%",
+            }}
+          >
+            <TextInput
+              error={!!error}
+              autoFocus={true}
+              mode="outlined"
+              label="Phone number"
+              value={value}
+              keyboardType="phone-pad"
+              onChangeText={(value) => {
+                onChange(value);
+                setPhoneNumber(value);
+              }}
+            />
+            {error && (
+              <HelperText type="error" style={{ textAlign: "center" }}>
+                {error}
+              </HelperText>
+            )}
+          </View>
+        )}
+      </Field>
+      <Button mode="contained" loading={isLoading} onPress={handleSubmit}>
         Sign In
       </Button>
     </View>

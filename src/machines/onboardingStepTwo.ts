@@ -9,6 +9,7 @@ export type OnboardingStepTwoActor = ActorRefFrom<
 
 export interface Context {
   options: { option1: boolean; option2: boolean };
+  error: string;
 }
 
 export const onboardingStepTwoMachine = setup({
@@ -17,7 +18,8 @@ export const onboardingStepTwoMachine = setup({
     input: {} as { persistedContext?: Context },
     events: {} as
       | { type: "GO_NEXT" }
-      | { type: "TOGGLE_OPTION"; key: keyof Context["options"] },
+      | { type: "TOGGLE_OPTION"; key: keyof Context["options"] }
+      | { type: "SET_ERROR_MESSAGE"; message: string },
   },
   actions: {
     toggleOption: assign({
@@ -38,6 +40,11 @@ export const onboardingStepTwoMachine = setup({
     goNext: () => {
       navigationRef.navigate("Onboarding", { screen: "StepThree" });
     },
+    assignErrorMessage: assign({
+      error: (_, params: { message: string }) => {
+        return params.message;
+      },
+    }),
   },
 }).createMachine({
   id: "onboardingStepTwo",
@@ -46,8 +53,9 @@ export const onboardingStepTwoMachine = setup({
     return {
       options: {
         option1: input.persistedContext?.options.option1 ?? false,
-        option2: input.persistedContext?.options.option2 ?? true,
+        option2: input.persistedContext?.options.option2 ?? false,
       },
+      error: "",
     };
   },
   states: {
@@ -60,6 +68,16 @@ export const onboardingStepTwoMachine = setup({
               type: "toggleOption",
               params: ({ event }) => {
                 return { key: event.key };
+              },
+            },
+          ],
+        },
+        SET_ERROR_MESSAGE: {
+          actions: [
+            {
+              type: "assignErrorMessage",
+              params: ({ event }) => {
+                return { message: event.message };
               },
             },
           ],
