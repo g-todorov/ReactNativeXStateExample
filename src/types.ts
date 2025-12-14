@@ -6,7 +6,7 @@ export interface AuthUser {
 
 export interface User {
   name: string;
-  choice: "first" | "second";
+  choice: "first" | "second" | undefined;
   options: { option1: boolean; option2: boolean };
 }
 
