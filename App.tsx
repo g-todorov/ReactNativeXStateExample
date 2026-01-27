@@ -4,7 +4,7 @@ import { PaperProvider } from "react-native-paper";
 import { AppProvider } from "./src/contexts/useApp";
 import { Navigation } from "./src/navigation/Navigation";
 
-function App(): JSX.Element {
+function App() {
   return (
     <PaperProvider>
       <AppProvider>
